@@ -10,8 +10,9 @@ export default function SocketProvider({
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isSocketConnected, setIsSocketConnected] = useState<boolean>(false);
 
-  // initialize Socket
+  console.log("isSocketConnected", isSocketConnected);
 
+  // initialize Socket
   React.useEffect(() => {
     const newSocket = io("http://localhost:5000");
     setSocket(newSocket);
@@ -23,18 +24,21 @@ export default function SocketProvider({
   React.useEffect(() => {
     if (!socket) return;
 
+    const onConnect = () => setIsSocketConnected(true);
+    const onDisconnect = () => setIsSocketConnected(false);
+
     if (socket.connected) {
       onConnect();
     }
 
-    function onConnect() {
-      setIsSocketConnected(true);
-    }
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
 
     return () => {
-      second;
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
     };
-  }, [third]);
+  }, [socket]);
 
   return (
     <SocketContext.Provider value={{ socket }}>
