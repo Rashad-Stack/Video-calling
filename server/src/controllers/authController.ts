@@ -1,16 +1,79 @@
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { users } from "../models/user";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import config from "../config/config";
+import User from "../models/user";
 
-export const login = (req: Request, res: Response, next: NextFunction) => {
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { name } = req.body;
+    const user = await User.findOne({ name });
 
-    const user = users.find((i) => i.name === name);
     if (!user) {
       res.status(StatusCodes.NOT_FOUND).json({ message: "User not found" });
       return;
     }
+
+    const token = user.createAuthToken();
+    user.sendCookie(res, token);
+    res.status(StatusCodes.OK).json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    res.clearCookie("token");
+    res.status(StatusCodes.OK).json({ message: "Logout successful" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const authenticatedUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res
+      .status(StatusCodes.UNAUTHORIZED)
+      .json({ message: "Unauthorized" });
+  }
+  try {
+    const payload = jwt.verify(token, config.jwtSecret) as JwtPayload;
+    req.user = { _id: payload.id };
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getCurrentUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const user = await User.findById(req.user?._id);
+
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: "error",
+        message: "User not found!",
+      });
+    }
+
     res.status(StatusCodes.OK).json(user);
   } catch (error) {
     next(error);

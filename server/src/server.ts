@@ -1,4 +1,5 @@
 import { createServer } from "http";
+import mongoose from "mongoose";
 import { Server } from "socket.io";
 import app from "./app";
 import config from "./config/config";
@@ -11,6 +12,11 @@ export const io = new Server(httpServer, {
     methods: ["GET", "POST"],
   },
 });
+
+mongoose
+  .connect(config.database)
+  .then(() => console.log("DB connection successful!"))
+  .catch((error) => console.error("DB connection error:", error));
 
 io.on("connection", (socket) => {
   console.log("a user connected");
