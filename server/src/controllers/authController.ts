@@ -19,8 +19,15 @@ export const login = async (
     }
 
     const token = user.createAuthToken();
+
     user.sendCookie(res, token);
-    res.status(StatusCodes.OK).json(user);
+    res.status(StatusCodes.OK).json({
+      user: {
+        id: user._id,
+        name: user.name,
+      },
+      token,
+    });
   } catch (error) {
     next(error);
   }
@@ -43,12 +50,12 @@ export const authenticatedUser = async (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
-  const token = req.cookies.token;
+): Promise<void> => {
+  const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
+
   if (!token) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ message: "Unauthorized" });
+    res.status(StatusCodes.UNAUTHORIZED).json({ message: "Unauthorized" });
+    return;
   }
   try {
     const payload = jwt.verify(token, config.jwtSecret) as JwtPayload;
@@ -68,10 +75,8 @@ export const getCurrentUser = async (
     const user = await User.findById(req.user?._id);
 
     if (!user) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        status: "error",
-        message: "User not found!",
-      });
+      res.status(StatusCodes.NOT_FOUND).json({ message: "User not found" });
+      return;
     }
 
     res.status(StatusCodes.OK).json(user);

@@ -1,5 +1,4 @@
 import axios from "axios";
-import { redirect } from "react-router";
 
 const api = axios.create({
   baseURL: "http://localhost:5000/api/v1/",
@@ -7,6 +6,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 api.interceptors.request.use(
@@ -18,6 +18,9 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    if (error.status === 401) {
+      window.location.href = "/sign-in";
+    }
     return Promise.reject(error);
   }
 );
@@ -27,8 +30,8 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response.status === 401) {
-      redirect("/login");
+    if (error.status === 401) {
+      window.location.href = "/sign-in";
     }
     return Promise.reject(error);
   }

@@ -1,7 +1,12 @@
+import type { IUser } from "@/types";
 import { Video } from "lucide-react";
 import { NavLink } from "react-router";
 
-export default function Header() {
+interface IHeader {
+  user: IUser;
+}
+
+export default function Header({ user }: IHeader) {
   return (
     <header>
       <div className="container mx-lg:max-w-6xl mx-auto py-4">
@@ -15,8 +20,14 @@ export default function Header() {
             </NavLink>
           </div>
           <div className="flex gap-4">
-            <NavLink to="/sign-in">Sign In</NavLink>
-            <NavLink to="/sign-up">Sign Up</NavLink>
+            {user ? (
+              <NavLink to="/sign-out">Sign out</NavLink>
+            ) : (
+              <>
+                <NavLink to="/sign-in">Sign in</NavLink>
+                <NavLink to="/sign-up">Sign up</NavLink>
+              </>
+            )}
           </div>
         </nav>
       </div>

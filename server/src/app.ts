@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import rateLimit from "express-rate-limit";
@@ -13,6 +14,7 @@ import userRoutes from "./routes/userRoute";
 const app = express();
 
 // Set secure HTTP headers
+app.use(cookieParser());
 app.use(helmet());
 app.use(morgan(config.nodeEnv === "development" ? "combined" : "tiny"));
 
@@ -24,7 +26,15 @@ const limit = rateLimit({
 });
 
 //  Body parser, reading data from body into req.body
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    credentials: true,
+    maxAge: 3600, // allow CORS requests to be cached for 1 hour
+    exposedHeaders: ["Content-Type", "Authorization"], // expose these headers to CORS requests
+  }),
+);
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
@@ -50,6 +60,14 @@ app.use("/api", limit);
 // Routes
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/auth", authRoutes);
+
+// app.all("*", (req, res, next) => {
+//   res.status(404).json({
+//     status: "fail",
+//     message: `Can't find ${req.originalUrl} on this server!`,
+//   });
+//   next();
+// });
 
 // Global error handler (should be after routes)
 app.use(errorHandler);

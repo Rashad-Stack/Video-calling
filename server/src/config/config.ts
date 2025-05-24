@@ -9,6 +9,7 @@ interface Config {
   jwtSecret: string;
   jwtExpiresIn: number | ms.StringValue;
   database: string;
+  cookieDomain: string;
 }
 
 function getEnvVariable(key: string): string {
@@ -25,6 +26,7 @@ const config: Config = {
   jwtSecret: getEnvVariable("JWT_SECRET"),
   jwtExpiresIn: "72h" as ms.StringValue, // Valid ms string format
   database: getEnvVariable("DATABASE"),
+  cookieDomain: getEnvVariable("COOKIE_DOMAIN"),
 };
 
 export default config;

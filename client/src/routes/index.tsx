@@ -1,5 +1,5 @@
 import RootLayout from "@/components/RootLayout";
-import { login, register } from "@/lib/services";
+import { getCurrentUser, login, logout, register } from "@/lib/services";
 import Error from "@/pages/Error";
 import Home from "@/pages/Home";
 import HydrateFallback from "@/pages/HydrateFallback";
@@ -13,23 +13,27 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     hydrateFallbackElement: <HydrateFallback />,
     errorElement: <Error />,
+    loader: getCurrentUser,
     children: [
       {
         index: true,
         element: <Home />,
       },
-
-      {
-        path: "sign-in",
-        element: <Login />,
-        action: login,
-      },
-      {
-        path: "sign-up",
-        element: <Register />,
-        action: register,
-      },
     ],
+  },
+  {
+    path: "sign-in",
+    element: <Login />,
+    action: login,
+  },
+  {
+    path: "sign-up",
+    element: <Register />,
+    action: register,
+  },
+  {
+    path: "sign-out",
+    loader: logout,
   },
 ]);
 
