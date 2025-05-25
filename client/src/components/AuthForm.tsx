@@ -1,4 +1,4 @@
-import { useFetcher } from "react-router";
+import { Link, useFetcher } from "react-router";
 import Loading from "./Loading";
 import { Alert, AlertTitle } from "./ui/alert";
 import { Button } from "./ui/button";
@@ -32,6 +32,9 @@ export default function AuthForm({ login }: { login?: boolean }) {
           Submit
         </Button>
       </div>
+      <Link to={login ? "/sign-up" : "/sign-in"}>
+        Or {login ? "sign up" : "sign in"}
+      </Link>
     </fetcher.Form>
   );
 }

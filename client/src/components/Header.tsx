@@ -1,12 +1,10 @@
-import type { IUser } from "@/types";
+import useContext from "@/hooks/useContext";
 import { Video } from "lucide-react";
 import { NavLink } from "react-router";
 
-interface IHeader {
-  user: IUser;
-}
+export default function Header() {
+  const { user } = useContext();
 
-export default function Header({ user }: IHeader) {
   return (
     <header>
       <div className="container mx-lg:max-w-6xl mx-auto py-4">

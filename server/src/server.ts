@@ -4,7 +4,14 @@ import { Server } from "socket.io";
 import app from "./app";
 import config from "./config/config";
 
+interface IUser {
+  _id: string;
+  name: string;
+  socketId: string;
+}
+
 const httpServer = createServer(app);
+const onlineUsers: IUser[] = [];
 
 export const io = new Server(httpServer, {
   cors: {
@@ -20,9 +27,35 @@ mongoose
   .catch((error) => console.error("DB connection error:", error));
 
 io.on("connection", (socket) => {
-  console.log("a user connected");
+  console.log("a user connected:", socket.id);
+
+  // Add user
+  socket.on("addNewUser", (user: IUser) => {
+    if (!user) {
+      return;
+    }
+
+    const isUserExist = onlineUsers.some((u) => u._id === user._id);
+    if (!isUserExist) {
+      const newUser = {
+        ...user,
+        socketId: socket.id,
+      };
+      onlineUsers.push(newUser);
+      console.log("New user added:", newUser);
+    }
+
+    io.emit("getUsers", onlineUsers);
+  });
+
+  // Handle disconnect
   socket.on("disconnect", () => {
-    console.log("user disconnected");
+    const index = onlineUsers.findIndex((user) => user.socketId === socket.id);
+    if (index !== -1) {
+      onlineUsers.splice(index, 1);
+      console.log("User disconnected:", socket.id);
+      io.emit("getUsers", onlineUsers);
+    }
   });
 });
 
