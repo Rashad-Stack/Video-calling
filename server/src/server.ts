@@ -1,25 +1,10 @@
-import { createServer } from "http";
 import mongoose from "mongoose";
-import { Server } from "socket.io";
-import app from "./app";
+import httpServer, { io } from "./app";
 import config from "./config/config";
+import onCall from "./events/onCall";
+import { IUser } from "./types";
 
-interface IUser {
-  _id: string;
-  name: string;
-  socketId: string;
-}
-
-const httpServer = createServer(app);
 const onlineUsers: IUser[] = [];
-
-export const io = new Server(httpServer, {
-  cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
 
 mongoose
   .connect(config.database)
@@ -57,6 +42,9 @@ io.on("connection", (socket) => {
       io.emit("getUsers", onlineUsers);
     }
   });
+
+  // Call Events
+  socket.on("callUser", onCall);
 });
 
 const server = httpServer.listen(config.port, () => {

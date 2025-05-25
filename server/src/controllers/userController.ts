@@ -9,8 +9,9 @@ export const createUser = async (
   next: NextFunction,
 ) => {
   try {
-    const { name } = req.body;
-    if (!name) {
+    const { name, avatar } = req.body;
+
+    if (!name || !avatar) {
       res.status(StatusCodes.BAD_REQUEST).json({
         status: "error",
         message: "Please provide all values!",
@@ -18,7 +19,7 @@ export const createUser = async (
     }
 
     // Creating  new user
-    const user = await User.create({ name });
+    const user = await User.create({ name, avatar });
     const token = user.createAuthToken();
     user.sendCookie(res, token);
     res.status(StatusCodes.CREATED).json({
@@ -66,11 +67,19 @@ export const getUserById = (
 };
 
 // Update an item
-export const updateItem = (req: Request, res: Response, next: NextFunction) => {
+export const updateUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const id = req.params.id;
     const { name } = req.body;
-    const updatedUser = User.findByIdAndUpdate(id, { name }, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { name },
+      { new: true },
+    );
     res.status(StatusCodes.OK).json(updatedUser);
   } catch (error) {
     next(error);
@@ -78,10 +87,14 @@ export const updateItem = (req: Request, res: Response, next: NextFunction) => {
 };
 
 // Delete an item
-export const deleteItem = (req: Request, res: Response, next: NextFunction) => {
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const id = req.params.id;
-    const deletedUser = User.findByIdAndDelete(id);
+    const deletedUser = await User.findByIdAndDelete(id);
     res.status(StatusCodes.OK).json(deletedUser);
   } catch (error) {
     next(error);

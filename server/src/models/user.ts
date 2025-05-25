@@ -5,6 +5,7 @@ import config from "../config/config";
 
 interface IUser extends Document {
   name: string;
+  avatar: string;
   createAuthToken(): string;
   sendCookie(res: Response, token: string): void;
 }
@@ -16,6 +17,10 @@ const userSchema: Schema<IUser> = new mongoose.Schema({
     minLength: 3,
     maxLength: 20,
     trim: true,
+  },
+  avatar: {
+    type: String,
+    required: true,
   },
 });
 

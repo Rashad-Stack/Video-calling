@@ -1,10 +1,13 @@
 import { AxiosError } from "axios";
+import { AvatarGenerator } from "random-avatar-generator";
 import { redirect } from "react-router";
 import api from "./axiosInstance";
 
 export const register = async ({ request }: { request: Request }) => {
   try {
+    const generator = new AvatarGenerator();
     const formData = await request.formData();
+    formData.append("avatar", generator.generateRandomAvatar());
     await api.post("users", formData);
     return redirect("/");
   } catch (error) {

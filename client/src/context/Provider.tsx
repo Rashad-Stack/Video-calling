@@ -1,5 +1,5 @@
-import type { IContext, IUser } from "@/types";
-import { useEffect, useReducer } from "react";
+import type { IContext, IUser, Participant } from "@/types";
+import { useCallback, useEffect, useReducer } from "react";
 import { io } from "socket.io-client";
 import { Context } from "./Context";
 import reducers from "./reducers";
@@ -10,7 +10,10 @@ const initialState: IContext = {
   socket: null,
   isSocketConnected: false,
   activeUsers: [],
+  ongoingCall: null,
+  localStream: null,
   dispatch: () => null,
+  handleCall: () => null,
 };
 
 interface IProvider {
@@ -22,9 +25,77 @@ interface IProvider {
 export default function Provider({ children }: IProvider) {
   const [state, dispatch] = useReducer(reducers, initialState);
 
-  const { user, socket, isSocketConnected } = state;
+  const { user, socket, isSocketConnected, activeUsers, localStream } = state;
 
   console.log("isSocketConnected", isSocketConnected);
+
+  const currentSocketUser = activeUsers?.find((u) => u._id === user?._id);
+
+  const getMediaStream = useCallback(
+    async (facingMode?: string) => {
+      if (localStream) return localStream;
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(
+          (device) => device.kind === "videoinput"
+        );
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: {
+            width: {
+              min: 640,
+              ideal: 1280,
+              max: 1920,
+            },
+            height: {
+              min: 360,
+              ideal: 720,
+              max: 1080,
+            },
+            frameRate: {
+              min: 16,
+              ideal: 30,
+              max: 30,
+            },
+            facingMode: videoDevices.length > 1 ? facingMode : undefined,
+          },
+        });
+
+        dispatch({ type: "SET_LOCAL_STREAM", payload: stream });
+        return stream;
+      } catch (error) {
+        console.error("Error accessing media devices:", error);
+        dispatch({ type: "SET_LOCAL_STREAM", payload: null });
+        return null;
+      }
+    },
+    [localStream]
+  );
+
+  const handleCall = useCallback(
+    async (user: IUser) => {
+      if (!socket || !currentSocketUser) return;
+
+      const stream = await getMediaStream();
+      if (!stream) return console.log("Error accessing media devices");
+
+      const participants = { caller: currentSocketUser, receiver: user };
+      dispatch({
+        type: "SET_ON_GOING_CALL",
+        payload: { participants, isCalling: false },
+      });
+
+      socket.emit("callUser", participants);
+    },
+    [socket, currentSocketUser, getMediaStream]
+  );
+
+  const onIncomingCall = useCallback((participants: Participant) => {
+    dispatch({
+      type: "SET_ON_GOING_CALL",
+      payload: { participants, isCalling: true },
+    });
+  }, []);
 
   // initialize Socket
   useEffect(() => {
@@ -35,6 +106,7 @@ export default function Provider({ children }: IProvider) {
     };
   }, []);
 
+  // Socket connection
   useEffect(() => {
     if (!socket) return;
 
@@ -56,6 +128,7 @@ export default function Provider({ children }: IProvider) {
     };
   }, [socket]);
 
+  // Set online users
   useEffect(() => {
     if (!socket || !isSocketConnected) return;
 
@@ -72,8 +145,19 @@ export default function Provider({ children }: IProvider) {
     };
   }, [isSocketConnected, socket, user]);
 
+  // Handle calls
+  useEffect(() => {
+    if (!socket || !currentSocketUser) return;
+
+    socket.on("incomingCall", onIncomingCall);
+
+    return () => {
+      socket.off("incomingCall", onIncomingCall);
+    };
+  }, [socket, currentSocketUser, onIncomingCall]);
+
   return (
-    <Context.Provider value={{ ...state, dispatch }}>
+    <Context.Provider value={{ ...state, dispatch, handleCall }}>
       {children}
     </Context.Provider>
   );

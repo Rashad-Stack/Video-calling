@@ -26,6 +26,18 @@ const reducers = (state: IContext, action: IAction): IContext => {
         ...state,
         activeUsers: action.payload,
       };
+
+    case "SET_ON_GOING_CALL":
+      return {
+        ...state,
+        ongoingCall: action.payload,
+      };
+
+    case "SET_LOCAL_STREAM":
+      return {
+        ...state,
+        localStream: action.payload,
+      };
     default:
       return state;
   }

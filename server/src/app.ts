@@ -6,6 +6,8 @@ import helmet from "helmet";
 import hpp from "hpp";
 import morgan from "morgan";
 
+import { createServer } from "http";
+import { Server } from "socket.io";
 import config from "./config/config";
 import errorHandler from "./middlewares/errorHandler";
 import authRoutes from "./routes/authRoute";
@@ -72,4 +74,12 @@ app.use("/api/v1/auth", authRoutes);
 // Global error handler (should be after routes)
 app.use(errorHandler);
 
-export default app;
+const httpServer = createServer(app);
+export const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+export default httpServer;
