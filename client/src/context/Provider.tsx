@@ -64,6 +64,12 @@ export default function Provider({ children }: IProvider) {
     socket.on("getUsers", (users: IUser[]) => {
       dispatch({ type: "SET_ACTIVE_USERS", payload: users });
     });
+
+    return () => {
+      socket.off("getUsers", (users: IUser[]) => {
+        dispatch({ type: "SET_ACTIVE_USERS", payload: users });
+      });
+    };
   }, [isSocketConnected, socket, user]);
 
   return (
