@@ -1,3 +1,4 @@
+import Peer from "simple-peer";
 import { Socket } from "socket.io-client";
 
 export interface IUser {
@@ -14,8 +15,10 @@ export interface IContext {
   activeUsers: IUser[];
   ongoingCall: OngoingCall | null;
   localStream: MediaStream | null;
+  peer: PeerData | null;
   dispatch: React.Dispatch<IAction>;
   handleCall: (user: IUser) => void;
+  handleJoinCall: (onGoingCall: OngoingCall) => void;
 }
 
 // Base type for payload values
@@ -35,6 +38,7 @@ type Payload = {
   SET_ACTIVE_USERS: IUser[];
   SET_ON_GOING_CALL: OngoingCall | null;
   SET_LOCAL_STREAM: MediaStream | null;
+  SET_PEER: PeerData | null;
 };
 
 export type IAction = ActionMap<Payload>[keyof ActionMap<Payload>];
@@ -47,4 +51,10 @@ export type OngoingCall = {
 export type Participant = {
   caller: IUser;
   receiver: IUser;
+};
+
+export type PeerData = {
+  peerConnection: Peer.Instance | null;
+  stream: MediaStream | null;
+  participant: IUser | null;
 };

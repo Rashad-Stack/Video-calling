@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 
 export default function CallNotification() {
-  const { ongoingCall } = useContext();
+  const { ongoingCall, handleJoinCall } = useContext();
 
   if (!ongoingCall?.isCalling) return;
 
@@ -29,11 +29,13 @@ export default function CallNotification() {
                 <AvatarImage src={ongoingCall?.participants.caller.avatar} />
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>
-              {ongoingCall?.participants?.caller?.name}
+              {ongoingCall?.participants.caller.name}
             </div>
 
             <div className="flex gap-2 flex-col w-full">
-              <Button className="bg-green-500 w-full cursor-pointer">
+              <Button
+                className="bg-green-500 w-full cursor-pointer"
+                onClick={() => handleJoinCall(ongoingCall)}>
                 <Phone size={48} className="text-white text-4xl " />
               </Button>
               <Button className="bg-red-500 w-full  cursor-pointer">

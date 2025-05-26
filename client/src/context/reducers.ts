@@ -38,6 +38,22 @@ const reducers = (state: IContext, action: IAction): IContext => {
         ...state,
         localStream: action.payload,
       };
+
+    case "SET_PEER":
+      if (state.peer && action?.payload?.stream) {
+        return {
+          ...state,
+          peer: {
+            ...state.peer,
+            stream: action.payload.stream,
+          },
+        };
+      }
+      return {
+        ...state,
+        peer: action.payload,
+      };
+
     default:
       return state;
   }

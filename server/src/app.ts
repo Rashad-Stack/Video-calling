@@ -3,7 +3,6 @@ import cors from "cors";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
-import hpp from "hpp";
 import morgan from "morgan";
 
 import { createServer } from "http";
@@ -39,22 +38,6 @@ app.use(
 );
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
-
-// Prevent parameter Pollution/duplication
-app.use(
-  hpp({
-    whitelist: [
-      "duration",
-      "maxGroupSize",
-      "ratingsAverage",
-      "ratingQuantity",
-      "price",
-      "startDates",
-      "durationWeeks",
-      "difficulty",
-    ],
-  }),
-);
 
 // routes middleware
 app.use("/api", limit);

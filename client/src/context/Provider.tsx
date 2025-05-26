@@ -1,5 +1,6 @@
-import type { IContext, IUser, Participant } from "@/types";
+import type { IContext, IUser, OngoingCall, Participant } from "@/types";
 import { useCallback, useEffect, useReducer } from "react";
+import Peer from "simple-peer";
 import { io } from "socket.io-client";
 import { Context } from "./Context";
 import reducers from "./reducers";
@@ -12,8 +13,10 @@ const initialState: IContext = {
   activeUsers: [],
   ongoingCall: null,
   localStream: null,
+  peer: null,
   dispatch: () => null,
   handleCall: () => null,
+  handleJoinCall: () => null,
 };
 
 interface IProvider {
@@ -25,7 +28,8 @@ interface IProvider {
 export default function Provider({ children }: IProvider) {
   const [state, dispatch] = useReducer(reducers, initialState);
 
-  const { user, socket, isSocketConnected, activeUsers, localStream } = state;
+  const { user, socket, isSocketConnected, activeUsers, localStream, peer } =
+    state;
 
   console.log("isSocketConnected", isSocketConnected);
 
@@ -97,6 +101,50 @@ export default function Provider({ children }: IProvider) {
     });
   }, []);
 
+  const createPeer = useCallback((stream: MediaStream, initiator: boolean) => {
+    const iceServers: RTCIceServer[] = [
+      {
+        urls: [
+          "stun:stun.l.google.com:19302",
+          "stun:stun1.l.google.com:19302",
+          "stun:stun2.l.google.com:19302",
+          "stun:stun3.l.google.com:19302",
+        ],
+      },
+    ];
+
+    const peer = new Peer({
+      stream,
+      initiator,
+      trickle: true,
+      config: { iceServers },
+    });
+
+    peer.on("stream", (stream) => {
+      dispatch({
+        type: "SET_PEER",
+        payload: { stream },
+      });
+    });
+  }, []);
+
+  const handleJoinCall = useCallback(
+    async (onGoingCall: OngoingCall) => {
+      if (!socket || !currentSocketUser) return;
+      console.log("onGoingCall", onGoingCall);
+
+      dispatch({
+        type: "SET_ON_GOING_CALL",
+        payload: { ...onGoingCall, isCalling: false },
+      });
+
+      const stream = await getMediaStream();
+
+      if (!stream) return console.log("Error accessing media devices");
+    },
+    [currentSocketUser, getMediaStream, socket]
+  );
+
   // initialize Socket
   useEffect(() => {
     const newSocket = io("http://localhost:5000");
@@ -157,7 +205,8 @@ export default function Provider({ children }: IProvider) {
   }, [socket, currentSocketUser, onIncomingCall]);
 
   return (
-    <Context.Provider value={{ ...state, dispatch, handleCall }}>
+    <Context.Provider
+      value={{ ...state, dispatch, handleCall, handleJoinCall }}>
       {children}
     </Context.Provider>
   );
