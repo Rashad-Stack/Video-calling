@@ -5,7 +5,7 @@ import VideoContainer from "./VideoContainer";
 import { Button } from "./ui/button";
 
 export default function VideoCall() {
-  const { localStream } = useContext();
+  const { localStream, peer, ongoingCall } = useContext();
   const [isMicOn, setIsMicOn] = useState<boolean>(false);
   const [isVidOn, setIsVidOn] = useState<boolean>(false);
 
@@ -34,6 +34,10 @@ export default function VideoCall() {
     }
   }, [localStream]);
 
+  const onCall = localStream && peer && ongoingCall ? true : false;
+
+  console.log(peer);
+
   return (
     <div className="my-5 flex flex-col items-center">
       <div>
@@ -41,7 +45,14 @@ export default function VideoCall() {
           <VideoContainer
             isLocalStream={true}
             stream={localStream}
-            isOnCall={false}
+            isOnCall={onCall}
+          />
+        )}
+        {peer && peer.stream && (
+          <VideoContainer
+            isLocalStream={false}
+            stream={peer.stream}
+            isOnCall={onCall}
           />
         )}
       </div>

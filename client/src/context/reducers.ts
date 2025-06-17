@@ -40,18 +40,13 @@ const reducers = (state: IContext, action: IAction): IContext => {
       };
 
     case "SET_PEER":
-      if (state.peer && action?.payload?.stream) {
-        return {
-          ...state,
-          peer: {
-            ...state.peer,
-            stream: action.payload.stream,
-          },
-        };
-      }
+      console.log("Setting peer data:", action.payload);
       return {
         ...state,
-        peer: action.payload,
+        peer: {
+          ...(state.peer || {}),
+          ...action.payload,
+        },
       };
 
     default:

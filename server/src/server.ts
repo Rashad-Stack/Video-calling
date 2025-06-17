@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import httpServer, { io } from "./app";
 import config from "./config/config";
 import onCall from "./events/onCall";
+import onWebRTCSignal from "./events/onWebRTCSignal";
 import { IUser } from "./types";
 
 const onlineUsers: IUser[] = [];
@@ -45,6 +46,7 @@ io.on("connection", (socket) => {
 
   // Call Events
   socket.on("callUser", onCall);
+  socket.on("webRTCSignal", onWebRTCSignal);
 });
 
 const server = httpServer.listen(config.port, () => {

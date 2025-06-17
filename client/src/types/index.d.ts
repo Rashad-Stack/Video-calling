@@ -54,7 +54,7 @@ export type Participant = {
 };
 
 export type PeerData = {
-  peerConnection: Peer.Instance | null;
-  stream: MediaStream | null;
-  participant: IUser | null;
+  peerConnection?: Peer.Instance | null;
+  stream?: MediaStream | null;
+  participantUser?: IUser | null;
 };
